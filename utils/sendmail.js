@@ -30,10 +30,10 @@ export const sendmail = async (recipient, subject, body) => {
             text: body,
         }, (error, info) => {
             if (error) {
-                console.log('Error occurred:', error);
+                // console.log('Error occurred:', error);
                 return reject(error); // Reject the promise if there is an error
             }
-            console.log('Email sent successfully:', info.response);
+            // console.log('Email sent successfully:', info.response);
             resolve(info); // Resolve the promise with the info
         });
     });

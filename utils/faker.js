@@ -22,7 +22,7 @@ const generate_a_random_user = async (usertype = null) => {
 
 
 
-const generateMultipleUsers = async (count, status, usertype) => {
+const generateMultipleUsers = async (count, usertype) => {
     const users = await Promise.all(
         Array.from({ length: count }, async () => await generate_a_random_user(usertype))
     );
@@ -30,21 +30,22 @@ const generateMultipleUsers = async (count, status, usertype) => {
 };
 
 
-const generate_a_random_course = async (instructor) => {
+const generate_a_random_course = async () => {
     const course = {
         title: faker.lorem.sentence({ min: 5, max: 8 }),
         description: faker.lorem.sentence({ min: 5, max: 12 }),
         duration: `${faker.number.int(100)}min`,
         price: `$${faker.number.int(100)}`,
-        instructor: instructor
     }
+    //console.log(course)
     return course
 }
 
-const generateMultipleCourses = async (count, instructor_id) => {
+const generateMultipleCourses = async (count) => {
     const courses = await Promise.all(
-        Array.from({ length: count }, async () => await generate_a_random_course(instructor_id))
+        Array.from({ length: count }, async () => await generate_a_random_course())
     );
+    // console.log(courses)
     return courses;
 };
 

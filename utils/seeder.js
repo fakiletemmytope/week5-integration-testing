@@ -46,9 +46,14 @@ const seed_courses = async (number = 1, instructor_id = null) => {
         await dbConnect()
         if (instructor_id) {
             //generate courses
-            const courses = await generateMultipleCourses(number, instructor_id)
+            const courses = await generateMultipleCourses(number)
+            const courses_with_instructor = courses.map(course => {
+                course.instructor = instructor_id
+                return course
+            })
+
             //save courses
-            const saved_courses = await CourseModel.insertMany(courses)
+            const saved_courses = await CourseModel.insertMany(courses_with_instructor)
             //get the user
             const user = await UserModel.findById(instructor_id)
             //add courses to user
@@ -59,13 +64,16 @@ const seed_courses = async (number = 1, instructor_id = null) => {
         } else {
             //create a random instructor and generate courses
             const instructor = await seed_users(1, "active", "instructor")
-            console.log(instructor)
             //generate courses for the instructor
-            const courses = await generateMultipleCourses(number, instructor.id)
+            const courses = await generateMultipleCourses(number)
+            const courses_with_instructor = courses.map(course => {
+                course.instructor = instructor._id
+                return course
+            })
             //save courses
-            const saved_courses = await CourseModel.insertMany(courses)
+            const saved_courses = await CourseModel.insertMany(courses_with_instructor)
             //get the user
-            const user = await UserModel.findById(instructor_id)
+            const user = await UserModel.findById(instructor._id)
             //add courses to user
             user.courses.push(...saved_courses)
             await user.save()

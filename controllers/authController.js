@@ -13,20 +13,18 @@ export const login = async (req, res) => {
     try {
         await dbConnect()
         const user = await UserModel.findOne({ email: email }).exec()
-        if (!user) {
-            res.status(404).send("User not found")
+        if (!user || await verify_password(user.password, password) == false) {
+            res.status(404).send("User not found or Incorrect login details")
         }
         else if (user.status === "inactive" || user.status === "suspended") {
             res.status(404).send(`User is ${user.status} and cannot be logged in. Contact the admin if suspended or request for activation token`)
         }
-        else if (await verify_password(user.password, password)) {
+        else {
             const { _id, first_name, last_name, email, userType } = user
             const token = await getToken({ first_name, last_name, _id, userType })
             res.status(200).json({ _id, first_name, last_name, email, token, userType })
         }
-        else {
-            res.status(400).send("Incorrect login details")
-        }
+
     } catch (err) {
         res.status(400).send(err.message)
     } finally {
@@ -52,8 +50,8 @@ export const activate_user = async (req, res) => {
             const update_user = await UserModel.findOneAndUpdate(
                 { _id: id, email: email }, { status: "active" }, { new: true }
             )
-            const {_id, first_name, last_name, status, userType, createdAt, updatedAt} = update_user
-            update_user ? res.status(200).json({_id, first_name, last_name, status, userType, createdAt, updatedAt, email: update_user.email}) : res.status(403).send("User not activated")
+            const { _id, first_name, last_name, status, userType, createdAt, updatedAt } = update_user
+            update_user ? res.status(200).json({ _id, first_name, last_name, status, userType, createdAt, updatedAt, email: update_user.email }) : res.status(403).send("User not activated")
         } catch (err) {
             res.status(403).send(err.message)
         }

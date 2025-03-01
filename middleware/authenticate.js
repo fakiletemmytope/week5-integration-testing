@@ -5,7 +5,7 @@ import { hash_password } from "../utils/passwd.js"
 export const authenticate = async (req, res, next) => {
     const auth = req.headers.authorization
     if (!auth) {
-        return res.status(400).send("Bearer token required")
+        return res.status(401).send("Unauthenticated user, bearer token required")
     }
     else {
         try {
@@ -18,7 +18,7 @@ export const authenticate = async (req, res, next) => {
                 next()
             }
             else {
-                return res.status(400).send("Unauthenticated User")
+                return res.status(401).send("Unauthenticated User")
             }
         } catch (err) {
             return res.status(400).send(err.message)
@@ -55,7 +55,7 @@ export const isAdmin = async (req, res, next) => {
         next()
     }
     else {
-        return res.status(400).send("Unauthorized User")
+        return res.status(403).send("Unauthorized User")
     }
 }
 
@@ -66,7 +66,7 @@ export const isInstructor = async (req, res, next) => {
         next()
     }
     else {
-        return res.status(400).send("Unauthorized User")
+        return res.status(403).send("Unauthorized User")
     }
 }
 
@@ -76,9 +76,10 @@ export const isStudent = async (req, res, next) => {
         next()
     }
     else {
-        return res.status(400).send("Unauthorized User")
+        return res.status(403).send("Unauthorized User")
     }
 }
+
 
 
 export const isAdminOrInstructor = async (req, res, next) => {
@@ -87,7 +88,7 @@ export const isAdminOrInstructor = async (req, res, next) => {
         next()
     }
     else {
-        return res.status(400).send("Unauthorized User")
+        return res.status(403).send("Unauthorized User")
     }
 }
 
@@ -99,7 +100,7 @@ export const hashPassword = async (req, res, next) => {
             next()
         }
         else {
-            res.status(400).send("Password required")
+            res.status(403).send("Password required")
         }
 
     } catch (error) {

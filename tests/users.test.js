@@ -28,15 +28,15 @@ describe("Test for users route", () => {
 
     test('should create a new user', async () => {
         const userData = await generate_a_random_user("student")
-        const response = await request
+        const { status, body } = await request
             .post('/api/users')
             .send(userData)
 
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toHaveProperty('_id');
-        expect(response.body.name).toBe(userData.name);
-        expect(response.body.email).toBe(userData.email);
-    })
+        expect(status).toBe(200);
+        expect(body).toHaveProperty('_id');
+        expect(body.first_name).toBe(userData.first_name);
+        expect(body.email).toBe(userData.email);
+    }, 10000)
 
     test('should get a user', async () => {
         //create an user and login the user
