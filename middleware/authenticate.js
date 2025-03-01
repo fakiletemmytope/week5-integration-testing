@@ -29,7 +29,6 @@ export const authenticate = async (req, res, next) => {
 export const unrestricted = async (req, res, next) => {
     const auth = req.headers.authorization
     if (!auth) {
-        req.decode = "unauthenticated user"
         next()
     }
     else {
@@ -38,12 +37,11 @@ export const unrestricted = async (req, res, next) => {
             const is_token_blacklisted = await isTokenBlacklisted(token)
             if (is_token_blacklisted) return res.status(400).send("Token not valid")
             const decode = await verifyToken(token)
-            if (decode._id) {
-                req.decode = "authenticated user"
+            if (decode) {
+                req.decode = decode
                 next()
             }
             else {
-                req.decode = "unauthenticated user"
                 next()
             }
         } catch (err) {

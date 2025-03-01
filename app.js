@@ -5,21 +5,16 @@ import { auth_router } from "./routes/auth.js";
 import { course_router } from "./routes/course.js";
 import { enrollment_router } from "./routes/enrollment.js";
 import { lesson_router } from "./routes/lesson.js";
-import { syncDb } from "./database/init_db.js";
 import { analytics_router } from "./routes/analytics.js";
 
-
 const app = express()
-const PORT = 3000
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
-
 // Use the router
-
 app.use("/auth", auth_router)
 app.use('/api/users', user_router);
 app.use('/api/courses', course_router);
@@ -32,9 +27,4 @@ app.get("/", (req, res) => {
     
 })
 
-
-
-app.listen(PORT, async () => {
-    await syncDb()
-    console.log(`This is a mini learning platform version 1.0 listening on port ${PORT}`)
-})
+export default app

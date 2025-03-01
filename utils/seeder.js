@@ -6,14 +6,18 @@ import {
     generateMultipleCourses,
     generateMultipleLessons
 } from "./faker.js";
+import supertest from "supertest";
 import { dbClose, dbConnect } from "../database/dbConnect.js"
 import { UserModel } from "../schema/user.js";
 import { CourseModel } from "../schema/course.js";
 import { LessonModel } from "../schema/lesson.js";
-import {EnrollmentModel} from "../schema/enrollment.js"
+import { EnrollmentModel } from "../schema/enrollment.js"
+import { hash_password } from "./passwd.js";
+import { faker } from "@faker-js/faker";
 
 
-const seed_users = async (number=1, status=null, usertype=null) => {
+
+const seed_users = async (number = 1, status = null, usertype = null) => {
     try {
         await dbConnect()
         if (number > 1) {
@@ -21,7 +25,11 @@ const seed_users = async (number=1, status=null, usertype=null) => {
             const saved_users = await UserModel.insertMany(users)
             return saved_users
         } else {
-            const user = await generate_a_random_user(number, status, usertype)
+            const user = await generate_a_random_user(usertype)
+            if (user.userType === 'instructor"')
+                user.bio = faker.lorem.sentence(10)
+            user.status = status
+            user.password = await hash_password(user.password)
             const saved_user = await UserModel.create(user)
             return saved_user
         }
@@ -30,10 +38,10 @@ const seed_users = async (number=1, status=null, usertype=null) => {
     }
 }
 
-// await seed_users(1, "active", "admin")
+//await seed_users(1, "active", "admin")
 
 
-const seed_courses = async (number=1, instructor_id=null) => {
+const seed_courses = async (number = 1, instructor_id = null) => {
     try {
         await dbConnect()
         if (instructor_id) {
@@ -50,7 +58,8 @@ const seed_courses = async (number=1, instructor_id=null) => {
 
         } else {
             //create a random instructor and generate courses
-            const instructor = await seed_users(1, "active", "admin")
+            const instructor = await seed_users(1, "active", "instructor")
+            console.log(instructor)
             //generate courses for the instructor
             const courses = await generateMultipleCourses(number, instructor.id)
             //save courses
@@ -61,7 +70,6 @@ const seed_courses = async (number=1, instructor_id=null) => {
             user.courses.push(...saved_courses)
             await user.save()
             return ({ user, saved_courses })
-
         }
     } catch (error) {
         console.log(error.message)
@@ -112,37 +120,43 @@ const seed_lessons = async (number, course_id) => {
 
 // console.log(await seed_lessons(2, "67bb8420273675dd0662c1dd"))
 
-const seed_enrollments = async (course_ids=[], student_id=null) => {
-    if(course_ids.length > 0 || student_id){
+const seed_enrollments = async (course_ids = [], student_id = null) => {
+    if (course_ids.length > 0 || student_id) {
         dbConnect()
-        const enroll = await EnrollmentModel.create({courses:course_ids, user: user_id})
+        const enroll = await EnrollmentModel.create({ courses: course_ids, user: user_id })
         return enroll
     }
-    else if (student_id || course_ids.length == 0 ){
+    else if (student_id || course_ids.length == 0) {
         //generate course
         const courses_with_instructor = await seed_courses(3)
         //
         const course_ids = []
-        courses_with_instructor.saved_courses.map(e =>{
+        courses_with_instructor.saved_courses.map(e => {
             course_ids.push(e._id)
         })
         dbConnect()
-        const enroll = await EnrollmentModel.create({courses:course_ids, user: student_id})
+        const enroll = await EnrollmentModel.create({ courses: course_ids, user: student_id })
         return enroll
     }
-    else{
+    else {
         const user = await seed_users(1, "active", "student")
         const courses_with_instructor = await seed_courses(3)
         const course_ids = []
-        courses_with_instructor.saved_courses.map(e =>{
+        courses_with_instructor.saved_courses.map(e => {
             course_ids.push(e._id)
         })
         dbConnect()
-        const enroll = await EnrollmentModel.create({courses:course_ids, user: user._id})
+        const enroll = await EnrollmentModel.create({ courses: course_ids, user: user._id })
         return enroll
     }
 }
 
+export {
+    seed_courses,
+    seed_enrollments,
+    seed_lessons,
+    seed_users,
+}
 
 
 

@@ -9,22 +9,22 @@ function getRandomEnum(enumObject) {
     return enum_type[randomIndex]
 }
 
-const generate_a_random_user = async (status, usertype) => {
+const generate_a_random_user = async (usertype = null) => {
     const user = {
         first_name: faker.person.firstName(),
         last_name: faker.person.lastName(),
         email: faker.internet.email(),
-        status: status || getRandomEnum(Status),
         userType: usertype || getRandomEnum(UserType),
-        password: await hash_password("*.Oluwaseyi88.*")
-
+        password: "*.Oluwaseyi88.*"
     }
     return user
 }
 
+
+
 const generateMultipleUsers = async (count, status, usertype) => {
     const users = await Promise.all(
-        Array.from({ length: count }, async () => await generate_a_random_user(status, usertype))
+        Array.from({ length: count }, async () => await generate_a_random_user(usertype))
     );
     return users;
 };

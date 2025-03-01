@@ -18,9 +18,27 @@ const get_courses = async (req, res) => {
 
 const get_course = async (req, res) => {
     const id = req.params.id
+    //console.log(req.decode)
     try {
         await dbConnect()
-        const course = (req.decode === "authenticated user") ? await CourseModel.findById(id, "title instructor duration _id price description").populate('lessons') : await CourseModel.findById(id, "title instructor duration _id price description")
+        let course = await CourseModel.findById(id, "title instructor duration _id price description")
+
+        if(req.decode){
+            if (req.decode.userType === 'student') {
+                const id = course.students.filter(v => v == decode.id)
+                if (id.length == 1) {
+                    course = await CourseModel.findById(id, "title instructor duration _id price description").populate('lessons')
+                }
+            }
+            if (req.decode.userType === 'instructor') {
+                if (course.instructor == decode._id)
+                    course = course = await CourseModel.findById(id, "title instructor duration _id price description").populate('lessons')
+            }
+            if (req.decode.userType === 'admin') {
+                course = await CourseModel.findById(id, "title instructor duration _id price description").populate('lessons')
+            }
+        }
+
         if (!course) return res.status(404).send("Course not found")
         res.status(200).json(course)
     } catch (error) {

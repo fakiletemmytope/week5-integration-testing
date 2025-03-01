@@ -21,7 +21,6 @@ export const get_users = async (req, res) => {
 
 }
 
-
 export const get_a_user = async (req, res) => {
     try {
         if (req.decode.userType === "admin" || req.decode._id === req.params.id) {
@@ -72,7 +71,7 @@ export const create_user = async (req, res) => {
             const token = getToken(payload, "20m")
             const msg = `Dear ${first_name},\n\n\nYour account has being created successfully. Click on the link below to activate you account\n\n${URL}/auth/activate?token=${token}\n\nWith love from,\nMINI LEARNING`
             //send email
-            sendmail(email, "Token for activation", msg)
+            await sendmail(email, "Token for activation", msg)
             res.status(200).json({
                 first_name, last_name, _id, email, createdAt, updatedAt, Instructor_info,
                 message: "activation link as been sent to your email"
@@ -81,17 +80,19 @@ export const create_user = async (req, res) => {
         else {
             await dbConnect()
             const savedUser = await user.save()
+            // console.log(savedUser)
             const { first_name, last_name, _id, email, createdAt, updatedAt } = savedUser
             const payload = { id: _id, email: email }
             const token = getToken(payload, "20m")
             const msg = `Dear ${first_name},\n\n\nYour account has being created successfully. Click on the link below to activate you account\n\n${URL}/auth/activate?token=${token}\n\nWith love from,\nMINI LEARNING`
-            sendmail(email, "Token for activation", msg)
+            await sendmail(email, "Token for activation", msg)
             res.status(200).json({
                 first_name, last_name, _id, email, createdAt, updatedAt,
                 message: "activation link has been sent to your email"
             })
         }
     } catch (error) {
+        console.log(error)
         res.status(500).send(error.message)
     } finally {
         dbClose()
@@ -100,24 +101,18 @@ export const create_user = async (req, res) => {
 
 export const update_user = async (req, res) => {
     const { last_name, first_name } = req.body
+    const update = {};
+    if (last_name) update.last_name = last_name;
+    if (first_name) update.first_name = first_name;
     try {
-        const update = {};
-        if (last_name) update.last_name = last_name;
-        if (first_name) update.first_name = first_name;
-        // if (Object.keys(update).length === 0) {
-        //     res.status(400).send("last_name or first_name required");
-        // }
-        else {
-            await dbConnect()
-            const user = await UserModel.findByIdAndUpdate(req.params.id, update, { new: true })
-            if (!user) {
-                return res.status(404).send("User not found");
-            }
-            const { id, last_name, first_name, email } = user
-            const updated_user = { id, last_name, first_name, email };
-            res.status(200).json(updated_user)
+        await dbConnect()
+        const user = await UserModel.findByIdAndUpdate(req.params.id, update, { new: true })
+        if (!user) {
+            return res.status(404).send("User not found");
         }
-
+        const { _id, last_name, first_name, email } = user
+        const updated_user = { _id, last_name, first_name, email };
+        res.status(200).json(updated_user)
     } catch (err) {
         res.status(400).send(err.message)
     } finally {
